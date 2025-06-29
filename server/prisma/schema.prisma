@@ -83,7 +83,6 @@ model Inventory {
   lastOrderDate DateTime
   status        Status      @default(ACTIVE)
   createdAt     DateTime    @default(now())
-  Mail          Mail[]
 }
 
 enum StockStatus {
@@ -117,8 +116,6 @@ model Mail {
   routingAreaId Int?
   routingArea   RoutingArea? @relation(fields: [routingAreaId], references: [id])
 
-  inventoryId Int?
-  inventory   Inventory? @relation(fields: [inventoryId], references: [id])
 
   employeeId Int
   employee   Employee @relation(fields: [employeeId], references: [id])
