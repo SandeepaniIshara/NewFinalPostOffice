@@ -1,0 +1,186 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Employee {
+  id       Int        @id @default(autoincrement())
+  username String     @unique
+  fName    String
+  lName    String
+  email    String     @unique
+  phoneNum String
+  address  String
+  password String
+  role     UserRole
+  status   UserStatus @default(PENDING)
+
+  Mail Mail[]
+
+  RoutingArea RoutingArea[]
+}
+
+enum UserRole {
+  MAIL_DELIVERER
+  POSTALCLERK
+  ADMIN
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  INACTIVE
+}
+
+model RoutingArea {
+  id   Int    @id @default(autoincrement())
+  area String
+
+  status Status @default(ACTIVE)
+
+  deliverId Int
+  deliver   Employee @relation(fields: [deliverId], references: [id])
+
+  Mail Mail[]
+}
+
+model Customer {
+  id         Int            @id @default(autoincrement())
+  fName      String
+  lName      String
+  email      String         @unique
+  contactNum String
+  address    String
+  status     CustomerStatus @default(ACTIVE)
+
+  Bill Bill[]
+
+  ReceiverMail Mail[] @relation("ReceiverRelation")
+
+  SenderMail Mail[] @relation("SenderRelation")
+}
+
+enum CustomerStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Inventory {
+  id            Int         @id @default(autoincrement())
+  itemName      String
+  quantity      Int
+  stockStatus   StockStatus
+  lastOrderDate DateTime
+  status        Status      @default(ACTIVE)
+  createdAt     DateTime    @default(now())
+  Mail          Mail[]
+}
+
+enum StockStatus {
+  IN_STOCK
+  OUT_STOCK
+}
+
+model Report {
+  id         Int        @id @default(autoincrement())
+  reportType ReportType
+  Date       DateTime
+}
+
+enum ReportType {
+  INVENTORY
+  MAIL
+}
+
+model Mail {
+  id        Int           @id @default(autoincrement())
+  type      MailType
+  status    MailStatus    @default(PENDING)
+  direction MailDirection
+
+  receiverId Int
+  receiver   Customer @relation("ReceiverRelation", fields: [receiverId], references: [id])
+
+  senderId Int
+  sender   Customer @relation("SenderRelation", fields: [senderId], references: [id])
+
+  routingAreaId Int?
+  routingArea   RoutingArea? @relation(fields: [routingAreaId], references: [id])
+
+  inventoryId Int?
+  inventory   Inventory? @relation(fields: [inventoryId], references: [id])
+
+  employeeId Int
+  employee   Employee @relation(fields: [employeeId], references: [id])
+}
+
+enum MailDirection {
+  INCOMING
+  OUTGOING
+}
+
+enum MailType {
+  LETTER
+  PARCEL
+  DOCUMENT
+}
+
+enum MailStatus {
+  PENDING
+  IN_TRANSIT
+  OUT_FOR_DELIVERY
+  DELIVERED
+  ATTEMPTED_DELIVERY
+  RETURNED_TO_SENDER
+  CANCELLED
+  LOST
+  HELD_AT_CUSTOMS
+}
+
+model Bill {
+  id            Int           @id @default(autoincrement())
+  amount        Float
+  billType      BillType
+  accountNumber String
+  amountPaid    Float
+  paymentMethod PaymentMethod
+
+  clientId Int
+  client   Customer @relation(fields: [clientId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+enum BillType {
+  ELECTRICITY
+  WATER
+  GAS
+  INTERNET
+  PHONE
+  RENT
+  INSURANCE
+  OTHER
+}
+
+enum PaymentMethod {
+  CASH
+  CREDIT_CARD
+  DEBIT_CARD
+  BANK_TRANSFER
+  OTHER
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+}
